@@ -94,7 +94,7 @@ class Decoder(nn.Module):
         up_block_types=("UpDecoderBlock2D",),
         block_out_channels=(64,),
         layers_per_block=2,
-        act_fn="silu",
+        act_fn="silu"
     ):
         super().__init__()
         self.layers_per_block = layers_per_block
@@ -402,6 +402,7 @@ class AutoencoderKL(ModelMixin, ConfigMixin):
         act_fn="silu",
         latent_channels=4,
         sample_size=32,
+        deterministic=False
     ):
         super().__init__()
 
@@ -423,16 +424,17 @@ class AutoencoderKL(ModelMixin, ConfigMixin):
             up_block_types=up_block_types,
             block_out_channels=block_out_channels,
             layers_per_block=layers_per_block,
-            act_fn=act_fn,
+            act_fn=act_fn
         )
 
+        self.deterministic = deterministic
         self.quant_conv = torch.nn.Conv2d(2 * latent_channels, 2 * latent_channels, 1)
         self.post_quant_conv = torch.nn.Conv2d(latent_channels, latent_channels, 1)
 
     def encode(self, x):
         h = self.encoder(x)
         moments = self.quant_conv(h)
-        posterior = DiagonalGaussianDistribution(moments)
+        posterior = DiagonalGaussianDistribution(moments, deterministic=self.deterministic)
         return posterior
 
     def decode(self, z):
