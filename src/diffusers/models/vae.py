@@ -401,8 +401,7 @@ class AutoencoderKL(ModelMixin, ConfigMixin):
         layers_per_block=1,
         act_fn="silu",
         latent_channels=4,
-        sample_size=32,
-        deterministic=False
+        sample_size=32
     ):
         super().__init__()
 
@@ -426,15 +425,13 @@ class AutoencoderKL(ModelMixin, ConfigMixin):
             layers_per_block=layers_per_block,
             act_fn=act_fn
         )
-
-        self.deterministic = deterministic
         self.quant_conv = torch.nn.Conv2d(2 * latent_channels, 2 * latent_channels, 1)
         self.post_quant_conv = torch.nn.Conv2d(latent_channels, latent_channels, 1)
 
     def encode(self, x):
         h = self.encoder(x)
         moments = self.quant_conv(h)
-        posterior = DiagonalGaussianDistribution(moments, deterministic=self.deterministic)
+        posterior = DiagonalGaussianDistribution(moments)
         return posterior
 
     def decode(self, z):
