@@ -55,8 +55,9 @@ class StableDiffusionLatent2ImgPipeline(DiffusionPipeline):
         eta: Optional[float] = 0.0,
         generator: Optional[torch.Generator] = None,
         output_type: Optional[str] = "pil",
+        seed: int = 69420 
     ):
-
+        torch.manual_seed(seed)
         if isinstance(prompt, str):
             batch_size = 1
         elif isinstance(prompt, list):
