@@ -55,9 +55,12 @@ class StableDiffusionLatent2ImgPipeline(DiffusionPipeline):
         eta: Optional[float] = 0.0,
         generator: Optional[torch.Generator] = None,
         output_type: Optional[str] = "pil",
-        seed: int = 69420 
+        seed: int = 69420,
+        verbose: bool =False 
     ):
         torch.manual_seed(seed)
+        if verbose:
+            print(f"seed is {seed}")
         if isinstance(prompt, str):
             batch_size = 1
         elif isinstance(prompt, list):
@@ -94,6 +97,9 @@ class StableDiffusionLatent2ImgPipeline(DiffusionPipeline):
         # add noise to latents using the timesteps
         noise = torch.randn(init_latents.shape, generator=generator, device=self.device)
         init_latents = self.scheduler.add_noise(init_latents, noise, timesteps)
+        if verbose:
+            print(f"first few elements of noise is {torch.flatten(noise)[:5]}")
+            print(f"first few elements of noised init_latents is {torch.flatten(init_latents)[:5]}")
 
         # get prompt text embeddings
         text_input = self.tokenizer(
@@ -139,6 +145,8 @@ class StableDiffusionLatent2ImgPipeline(DiffusionPipeline):
 
             # predict the noise residual
             noise_pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings)["sample"]
+            if verbose and i==0:
+                print(f"first few elements of noise_pred for first timestep: {torch.flatten(noise_pred[:5])}")
 
             # perform guidance
             if do_classifier_free_guidance:
